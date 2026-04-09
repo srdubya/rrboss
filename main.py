@@ -98,7 +98,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
                 phone_number = contact.phoneNumber.removeprefix("+1")
                 phone_number = "+1" + str(''.join(re.findall(r'[0-9]*', phone_number)))
                 if len(phone_number) == 12:  # +13456789012
-                    print("Sending message to {} at {}", contact.key(), phone_number)
+                    print(f"Sending message to {contact.key()} at {phone_number}")
                     nums.append(phone_number)
             if len(nums) > 0:
                 SmsSender.send_sms(nums, message)
