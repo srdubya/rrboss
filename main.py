@@ -31,6 +31,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.sendButton:QPushButton
         self.messageTextEdit :QTextEdit
         self.invertPushButton:QPushButton
+        self.itemCheckedSuspended :bool = True
         self.nameFilter = ''
         self.companyFilter = ''
         QtCore.QTimer.singleShot(500, self.on_start)
@@ -65,6 +66,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.saveAsPushButton.clicked.connect(self.save_as_clicked)
         self.savedComboBox.currentIndexChanged.connect(self.change_list)
         self.messageTextEdit.textChanged.connect(self.message_text_changed)
+        self.listWidget.itemChanged.connect(self.recalc_list_count)
         self.savedComboBox.addItem('<none>')
         for key in settings.saved_contacts.keys():
             self.savedComboBox.addItem(key)
@@ -72,30 +74,47 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.invertPushButton.clicked.connect(self.invert_checked_contacts)
         self.messageTextEdit.setFocus()
 
+    def recalc_list_count(self) -> None:
+        if self.itemCheckedSuspended:
+            return
+        total_count = self.listWidget.count()
+        checked_count = 0
+        for index in range(total_count):
+            item = self.listWidget.item(index)
+            if item.checkState() == Qt.Checked:
+                checked_count += 1
+        self.statusBar().showMessage('%d of %d selected' % (checked_count, total_count))
+
     def message_text_changed(self):
         self.sendButton.setEnabled(len(self.messageTextEdit.toPlainText()) > 0)
 
     def send_message(self):
         destinations = self.get_checked_items()
         message = self.messageTextEdit.toPlainText()
-        # first_message = True
+        nums :list[str] = []
         if len(destinations) > 0 and len(message) > 0:
             for key in destinations:
                 contact = self.contacts_cache.cache[key]
                 phone_number = contact.phoneNumber.removeprefix("+1")
                 phone_number = "+1" + str(''.join(re.findall(r'[0-9]*', phone_number)))
-                self.statusBar().showMessage("Sending message to " + contact.key())
-                print("Sending message to {} at {}", contact.key(), phone_number)
-                SmsSender.send_sms(phone_number, message)
-                self.statusBar().showMessage("Message sent to " + contact.key())
+                if len(phone_number) == 12:  # +13456789012
+                    print("Sending message to {} at {}", contact.key(), phone_number)
+                    nums.append(phone_number)
+            if len(nums) > 0:
+                SmsSender.send_sms(nums, message)
+                print("Send completed")
 
     def invert_checked_contacts(self):
+        self.itemCheckedSuspended = True
         for index in range(self.listWidget.count()):
             item = self.listWidget.item(index)
             item.setCheckState(Qt.Unchecked if item.checkState() == Qt.Checked else Qt.Checked)
+        self.itemCheckedSuspended = False
+        self.recalc_list_count()
 
 
     def change_list(self):
+        self.itemCheckedSuspended = True
         selected_list = str(self.savedComboBox.currentText())
         if selected_list == '<none>':
             self.fill_contacts()
@@ -103,6 +122,8 @@ class MyQMainWindow(QtWidgets.QMainWindow):
             self.listWidget.clear()
             for key in settings.saved_contacts[selected_list]:
                 self.append_contact(self.contacts_cache.cache[key], is_checked=True)
+        self.itemCheckedSuspended = False
+        self.recalc_list_count()
 
     def save_as_clicked(self):
         global settings
@@ -125,11 +146,14 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.saveAsPushButton.setEnabled(len(self.saveAsLineEdit.text()) >0)
 
     def fill_contacts(self):
+        self.itemCheckedSuspended = True
         self.listWidget.clear()
         self.nameFilter = self.nameFilterLineEdit.text()
         self.companyFilter = self.companyFilterLineEdit.text()
         for contact in self.contacts_cache.get_contacts(self.is_good_contact):
             self.append_contact(contact)
+        self.itemCheckedSuspended = False
+        self.recalc_list_count()
 
     def append_contact(self, contact, is_checked=False):
         item = QListWidgetItem(contact.to_string())
