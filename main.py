@@ -4,7 +4,8 @@ from typing import Any
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtCore import Qt, QEventLoop, QTimer
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLineEdit, QPushButton, QComboBox, QStatusBar, QTextEdit
+from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLineEdit, QPushButton, QComboBox, QStatusBar, QTextEdit, \
+    QSpinBox
 
 from appSettings import Settings
 from contacts import ContactCache, Contact
@@ -31,10 +32,11 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.sendButton:QPushButton
         self.messageTextEdit :QTextEdit
         self.invertPushButton:QPushButton
+        self.batchSizeSpinBox :QSpinBox
         self.itemCheckedSuspended :bool = True
         self.nameFilter = ''
         self.companyFilter = ''
-        QtCore.QTimer.singleShot(500, self.on_start)
+        QtCore.QTimer.singleShot(100, self.on_start)
 
     def resizeEvent(self, event) -> None:
         global settings
@@ -58,6 +60,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.sendButton = self.findChild(QPushButton, 'sendButton')
         self.messageTextEdit = self.findChild(QTextEdit, 'messageTextEdit')
         self.invertPushButton = self.findChild(QPushButton, 'invertPushButton')
+        self.batchSizeSpinBox = self.findChild(QSpinBox, 'batchSizeSpinBox')
         self.messageTextEdit.setAcceptRichText(False)
         self.fill_contacts()
         self.nameFilterLineEdit.textChanged.connect(self.fill_contacts)
@@ -72,6 +75,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
             self.savedComboBox.addItem(key)
         self.sendButton.clicked.connect(self.send_message)
         self.invertPushButton.clicked.connect(self.invert_checked_contacts)
+        self.batchSizeSpinBox.setValue(SmsSender.max_phone_nums)
         self.messageTextEdit.setFocus()
 
     def recalc_list_count(self) -> None:
@@ -91,6 +95,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
     def send_message(self):
         destinations = self.get_checked_items()
         message = self.messageTextEdit.toPlainText()
+        SmsSender.max_phone_nums = self.batchSizeSpinBox.value()
         nums :list[str] = []
         if len(destinations) > 0 and len(message) > 0:
             for key in destinations:
