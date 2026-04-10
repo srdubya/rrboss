@@ -38,14 +38,6 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.companyFilter = ''
         QtCore.QTimer.singleShot(100, self.on_start)
 
-    def resizeEvent(self, event) -> None:
-        global settings
-        # print("Window resized to:", event.size())
-        if settings and self.is_eventing:
-            settings.app_height = self.size().height()
-            settings.app_width = self.size().width()
-            settings.to_file("settings.json")
-
     def on_start(self) -> None:
         self.resize(settings.app_width, settings.app_height)
         self.is_eventing = True
@@ -75,8 +67,23 @@ class MyQMainWindow(QtWidgets.QMainWindow):
             self.savedComboBox.addItem(key)
         self.sendButton.clicked.connect(self.send_message)
         self.invertPushButton.clicked.connect(self.invert_checked_contacts)
-        self.batchSizeSpinBox.setValue(SmsSender.max_phone_nums)
+        self.batchSizeSpinBox.setValue(settings.batch_size)
+        self.batchSizeSpinBox.valueChanged.connect(self.on_new_batch_size)
         self.messageTextEdit.setFocus()
+
+    def resizeEvent(self, event) -> None:
+        global settings
+        # print("Window resized to:", event.size())
+        if settings and self.is_eventing:
+            settings.app_height = self.size().height()
+            settings.app_width = self.size().width()
+            settings.to_file("settings.json")
+
+    def on_new_batch_size(self, value :int):
+        global settings
+        if settings and self.is_eventing:
+            settings.batch_size = value
+            settings.to_file("settings.json")
 
     def recalc_list_count(self) -> None:
         if self.itemCheckedSuspended:

@@ -28,6 +28,7 @@ def debounce_trailing(wait_seconds):
 class Settings(BaseModel):
     app_height: int = 500
     app_width: int = 600
+    batch_size: int = 20
     saved_contacts: dict[str, list[str]] = {}
 
     # name: str = 'Jane De'
