@@ -1,3 +1,4 @@
+import datetime
 import re
 from typing import Any
 
@@ -11,7 +12,7 @@ from appSettings import Settings
 from contacts import ContactCache, Contact
 from scriptRunner import SmsSender
 
-settings = Settings.from_file('settings.json')
+settings = Settings.from_file()
 
 def sleep_ms(ms):
     loop = QEventLoop()
@@ -77,13 +78,13 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         if settings and self.is_eventing:
             settings.app_height = self.size().height()
             settings.app_width = self.size().width()
-            settings.to_file("settings.json")
+            settings.to_file()
 
     def on_new_batch_size(self, value :int):
         global settings
         if settings and self.is_eventing:
             settings.batch_size = value
-            settings.to_file("settings.json")
+            settings.to_file()
 
     def recalc_list_count(self) -> None:
         if self.itemCheckedSuspended:
@@ -110,11 +111,11 @@ class MyQMainWindow(QtWidgets.QMainWindow):
                 phone_number = contact.phoneNumber.removeprefix("+1")
                 phone_number = "+1" + str(''.join(re.findall(r'[0-9]*', phone_number)))
                 if len(phone_number) == 12:  # +13456789012
-                    print(f"Sending message to {contact.key()} at {phone_number}")
+                    print(f"{datetime.now()}: Sending message to {contact.key()} at {phone_number}")
                     nums.append(phone_number)
             if len(nums) > 0:
                 SmsSender.send_sms(nums, message)
-                print("Send completed")
+                print(f"{datetime.now()}: Send completed")
 
     def invert_checked_contacts(self):
         self.itemCheckedSuspended = True
@@ -143,7 +144,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         saved_contacts = self.get_checked_items()
         if len(saved_contacts) > 0:
             settings.save_contacts(saved_name, saved_contacts)
-            settings.to_file("settings.json")
+            settings.to_file()
             self.savedComboBox.addItem(saved_name)
 
     def get_checked_items(self) -> list[Any]:

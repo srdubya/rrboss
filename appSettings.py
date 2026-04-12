@@ -1,6 +1,9 @@
-import pathlib
+import sys
 import threading
 from functools import wraps
+from pathlib import Path
+from typing import ClassVar
+
 from pydantic import BaseModel, ConfigDict, ValidationError
 
 
@@ -26,6 +29,7 @@ def debounce_trailing(wait_seconds):
     return decorator
 
 class Settings(BaseModel):
+    SETTINGSFILE :ClassVar[Path] = Path.home() / '.rrboss.json'
     app_height: int = 500
     app_width: int = 600
     batch_size: int = 20
@@ -34,19 +38,25 @@ class Settings(BaseModel):
     # name: str = 'Jane De'
 
     @staticmethod
-    def from_file(filename) -> Settings:
-        model_str = pathlib.Path(filename).read_text()
+    def from_file() -> Settings:
+        if not Settings.SETTINGSFILE.exists():
+            Settings._to_file(Settings())
+        model_str = Path(Settings.SETTINGSFILE).read_text()
         try:
             return Settings.model_validate_json(model_str)
         except ValidationError as e:
-            print(e)
+            print(e, file=sys.stderr)
             return Settings()
 
     @debounce_trailing(0.5)
-    def to_file(self, filename):
-        print("Saving", filename)
-        text = self.model_dump_json(indent=2)
-        pathlib.Path(filename).write_text(text)
+    def to_file(self):
+        print("Saving {Settings._SettingsFile}")
+        Settings._to_file(self)
+
+    @staticmethod
+    def _to_file(settings: Settings):
+        text = settings.model_dump_json(indent=2)
+        Settings.SETTINGSFILE.write_text(text)
 
     def save_contacts(self, key: str, values: list[str]):
         self.saved_contacts[key] = values
