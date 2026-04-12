@@ -206,3 +206,15 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 /icon/MyIcon.icns
+/icon/MyIcon.iconset/icon_512x512@2x.png
+/.python-version
+/icon/MyIcon.iconset/icon_16x16.png
+/icon/MyIcon.iconset/icon_16x16@2x.png
+/icon/MyIcon.iconset/icon_32x32.png
+/icon/MyIcon.iconset/icon_32x32@2x.png
+/icon/MyIcon.iconset/icon_128x128.png
+/icon/MyIcon.iconset/icon_128x128@2x.png
+/icon/MyIcon.iconset/icon_256x256.png
+/icon/MyIcon.iconset/icon_256x256@2x.png
+/icon/MyIcon.iconset/icon_512x512.png
+/uv.lock
