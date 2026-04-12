@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLineEdit, QPushButt
 
 from appSettings import Settings
 from contacts import ContactCache, Contact
-from scriptRunner import SmsSender
+from smsSender import SmsSender
 
 settings = Settings.from_file()
 
