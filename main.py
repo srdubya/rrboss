@@ -41,6 +41,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
 
     def on_start(self) -> None:
         self.resize(settings.app_width, settings.app_height)
+        self.move(settings.app_x, settings.app_y)
         self.is_eventing = True
         self.contacts_cache = ContactCache()
         self.listWidget = self.findChild(QListWidget)
@@ -72,6 +73,15 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.batchSizeSpinBox.valueChanged.connect(self.on_new_batch_size)
         self.messageTextEdit.setFocus()
 
+    def moveEvent(self, event):
+        global settings
+        if settings and self.is_eventing:
+            pos = self.pos()
+            settings.app_x = pos.x()
+            settings.app_y = pos.y()
+            settings.to_file()
+        super().moveEvent(event)
+
     def resizeEvent(self, event) -> None:
         global settings
         # print("Window resized to:", event.size())
@@ -79,6 +89,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
             settings.app_height = self.size().height()
             settings.app_width = self.size().width()
             settings.to_file()
+        super().resizeEvent(event)
 
     def on_new_batch_size(self, value :int):
         global settings
@@ -197,7 +208,7 @@ class MyQUiLoader(QUiLoader):
 def main():
     app = QtWidgets.QApplication([])
     loader = MyQUiLoader()
-    window = loader.load("sendTexts.ui", None)
+    window = loader.load("mainWindow.ui", None)
     window.show()
     app.exec()
 

@@ -32,6 +32,8 @@ class Settings(BaseModel):
     SETTINGSFILE :ClassVar[Path] = Path.home() / '.rrboss.json'
     app_height: int = 500
     app_width: int = 600
+    app_x: int = 100
+    app_y: int = 100
     batch_size: int = 20
     saved_contacts: dict[str, list[str]] = {}
 
