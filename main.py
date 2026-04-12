@@ -1,4 +1,3 @@
-import datetime
 import re
 from typing import Any
 
@@ -11,6 +10,7 @@ from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLineEdit, QPushButt
 from appSettings import Settings
 from contacts import ContactCache, Contact
 from smsSender import SmsSender
+from datetime import datetime
 
 settings = Settings.from_file()
 
