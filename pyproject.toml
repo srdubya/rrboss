@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel", "py2app"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rrboss"
+version = "0.1.0"
+description = "Manage sending texts to potential round robin players."
+readme = "README.md"
+requires-python = ">=3.14"
