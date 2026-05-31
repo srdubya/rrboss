@@ -1,6 +1,13 @@
 import sys
 import subprocess, json, tempfile, os
+from datetime import datetime
 from typing import Any
+
+class Destination:
+    def __init__(self, first:str, last:str, phone:str) -> None:
+        self.first = first
+        self.last = last
+        self.phone = phone
 
 class SmsSender:
     max_phone_nums : int = 20
@@ -28,10 +35,11 @@ class SmsSender:
             print(f"Timeout after {timeout}s", file=sys.stderr)
 
     @staticmethod
-    def send_sms(nums :list[str], msg :str) -> None:
+    def send_sms(nums :list[Destination], msg :str) -> None:
         payload = SmsSender.new_payload(msg)
         for i in range(len(nums)):
-            payload["numbers"].append(str(nums[i]))
+            payload["numbers"].append(str(nums[i].phone))
+            print(f"{i+1:>2} {datetime.now()}: Sending message to {nums[i].first} {nums[i].last} at {nums[i].phone}")
             if (i + 1) % SmsSender.max_phone_nums == 0:
                 SmsSender.run_cmd(payload)
                 payload["numbers"].clear()

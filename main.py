@@ -1,4 +1,5 @@
 import re
+import sys
 from typing import Any
 
 from PySide6 import QtWidgets, QtCore
@@ -9,7 +10,7 @@ from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLineEdit, QPushButt
 
 from appSettings import Settings
 from contacts import ContactCache, Contact
-from smsSender import SmsSender
+from smsSender import SmsSender, Destination
 from datetime import datetime
 
 settings = Settings.from_file()
@@ -33,6 +34,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.sendButton:QPushButton
         self.messageTextEdit :QTextEdit
         self.invertPushButton:QPushButton
+        self.clearPushButton:QPushButton
         self.batchSizeSpinBox :QSpinBox
         self.itemCheckedSuspended :bool = True
         self.nameFilter = ''
@@ -69,6 +71,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
             self.savedComboBox.addItem(key)
         self.sendButton.clicked.connect(self.send_message)
         self.invertPushButton.clicked.connect(self.invert_checked_contacts)
+        self.clearPushButton.clicked.connect(self.clear_checked_contacts)
         self.batchSizeSpinBox.setValue(settings.batch_size)
         self.batchSizeSpinBox.valueChanged.connect(self.on_new_batch_size)
         self.messageTextEdit.setFocus()
@@ -112,21 +115,29 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.sendButton.setEnabled(len(self.messageTextEdit.toPlainText()) > 0)
 
     def send_message(self):
-        destinations = self.get_checked_items()
-        message = self.messageTextEdit.toPlainText()
-        SmsSender.max_phone_nums = self.batchSizeSpinBox.value()
-        nums :list[str] = []
-        if len(destinations) > 0 and len(message) > 0:
-            for key in destinations:
-                contact = self.contacts_cache.cache[key]
-                phone_number = contact.phoneNumber.removeprefix("+1")
-                phone_number = "+1" + str(''.join(re.findall(r'[0-9]*', phone_number)))
-                if len(phone_number) == 12:  # +13456789012
-                    print(f"{datetime.now()}: Sending message to {contact.key()} at {phone_number}")
-                    nums.append(phone_number)
-            if len(nums) > 0:
-                SmsSender.send_sms(nums, message)
-                print(f"{datetime.now()}: Send completed")
+        self.setEnabled(False)
+        QtCore.QTimer.singleShot(100, self.send_the_messages)
+
+    def send_the_messages(self) -> None:
+        try:
+            checked_items = self.get_checked_items()
+            message = self.messageTextEdit.toPlainText()
+            SmsSender.max_phone_nums = self.batchSizeSpinBox.value()
+            destinations :list[Destination] = []
+            if len(checked_items) > 0 and len(message) > 0:
+                for key in checked_items:
+                    contact = self.contacts_cache.cache[key]
+                    phone_number = contact.phoneNumber.removeprefix("+1")
+                    phone_number = "+1" + str(''.join(re.findall(r'[0-9]*', phone_number)))
+                    if len(phone_number) == 12:  # +13456789012
+                        destinations.append(Destination(contact.givenName, contact.familyName, phone_number))
+                    else:
+                        print(f"Bad phone number: {phone_number} for: {contact.key()}", file=sys.stderr)
+                if len(destinations) > 0:
+                    SmsSender.send_sms(destinations, message)
+                    print(f"   {datetime.now()}: Send completed")
+        finally:
+            self.setEnabled(True)
 
     def invert_checked_contacts(self):
         self.itemCheckedSuspended = True
@@ -136,6 +147,13 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.itemCheckedSuspended = False
         self.recalc_list_count()
 
+    def clear_checked_contacts(self):
+        self.itemCheckedSuspended = True
+        for index in range(self.listWidget.count()):
+            item = self.listWidget.item(index)
+            item.setCheckState(Qt.Unchecked)
+        self.itemCheckedSuspended = False
+        self.recalc_list_count()
 
     def change_list(self):
         self.itemCheckedSuspended = True
