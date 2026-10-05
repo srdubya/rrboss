@@ -3,6 +3,9 @@ import subprocess, json, tempfile, os
 from datetime import datetime
 from typing import Any
 
+from PySide6.QtCore import QEventLoop, QTimer
+
+
 class Destination:
     def __init__(self, first:str, last:str, phone:str) -> None:
         self.first = first
@@ -11,6 +14,12 @@ class Destination:
 
 class SmsSender:
     max_phone_nums : int = 20
+
+    @staticmethod
+    def sleep_ms(ms):
+        loop = QEventLoop()
+        QTimer.singleShot(ms, loop.quit)
+        loop.exec_()
 
     @staticmethod
     def run_cmd(payload :dict, timeout=30) -> None:
@@ -25,6 +34,7 @@ class SmsSender:
                 check=False,
                 timeout=timeout,
             )
+            SmsSender.sleep_ms(3 * 1000)
         finally:
             os.remove(path)
         try:
