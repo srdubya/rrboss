@@ -83,6 +83,9 @@
             <pointsize>13</pointsize>
            </font>
           </property>
+          <property name="supportedDragActions">
+           <set>Qt::DropAction::IgnoreAction</set>
+          </property>
          </widget>
         </item>
         <item>
