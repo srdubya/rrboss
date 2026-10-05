@@ -12,7 +12,6 @@ class Contact:
     @staticmethod
     def best_phone_number(phone_numbers) -> str:
         for key, val in phone_numbers.items():
-            lower_key = str(key)
             if 'mobile' in str(key).lower():
                 return str(val)
         return str(next(iter(phone_numbers.values())))
