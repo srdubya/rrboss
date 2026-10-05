@@ -15,11 +15,6 @@ from datetime import datetime
 
 settings = Settings.from_file()
 
-def sleep_ms(ms):
-    loop = QEventLoop()
-    QTimer.singleShot(ms, loop.quit)
-    loop.exec_()
-
 class MyQMainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -107,7 +102,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         checked_count = 0
         for index in range(total_count):
             item = self.listWidget.item(index)
-            if item.checkState() == Qt.Checked:
+            if item.checkState() == Qt.CheckState.Checked:
                 checked_count += 1
         self.statusBar().showMessage('%d of %d selected' % (checked_count, total_count))
 
@@ -143,7 +138,9 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.itemCheckedSuspended = True
         for index in range(self.listWidget.count()):
             item = self.listWidget.item(index)
-            item.setCheckState(Qt.Unchecked if item.checkState() == Qt.Checked else Qt.Checked)
+            item.setCheckState(
+                Qt.CheckState.Unchecked if item.checkState() == Qt.CheckState.Checked else Qt.CheckState.Checked
+            )
         self.itemCheckedSuspended = False
         self.recalc_list_count()
 
@@ -151,7 +148,7 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         self.itemCheckedSuspended = True
         for index in range(self.listWidget.count()):
             item = self.listWidget.item(index)
-            item.setCheckState(Qt.Unchecked)
+            item.setCheckState(Qt.CheckState.Unchecked)
         self.itemCheckedSuspended = False
         self.recalc_list_count()
 
@@ -180,8 +177,8 @@ class MyQMainWindow(QtWidgets.QMainWindow):
         saved_contacts = []
         for index in range(self.listWidget.count()):
             item = self.listWidget.item(index)
-            if item.checkState() == Qt.Checked:
-                saved_contacts.append(item.data(Qt.UserRole).key())
+            if item.checkState() == Qt.CheckState.Checked:
+                saved_contacts.append(item.data(Qt.ItemDataRole.UserRole).key())
         return saved_contacts
 
     def save_as_text_changed(self):
@@ -199,9 +196,9 @@ class MyQMainWindow(QtWidgets.QMainWindow):
 
     def append_contact(self, contact, is_checked=False):
         item = QListWidgetItem(contact.to_string())
-        item.setData(Qt.UserRole, contact)
-        item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
-        item.setCheckState(Qt.Checked if is_checked else Qt.Unchecked)
+        item.setData(Qt.ItemDataRole.UserRole, contact)
+        item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+        item.setCheckState(Qt.CheckState.Checked if is_checked else Qt.CheckState.Unchecked)
         self.listWidget.addItem(item)
 
     def is_good_contact(self, contact :Contact) -> bool:
