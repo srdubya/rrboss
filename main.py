@@ -3,9 +3,9 @@ import sys
 from typing import Any
 
 from PySide6 import QtWidgets, QtCore
-from PySide6.QtCore import Qt, QEventLoop, QTimer
+from PySide6.QtCore import Qt
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLineEdit, QPushButton, QComboBox, QStatusBar, QTextEdit, \
+from PySide6.QtWidgets import QListWidget, QListWidgetItem, QLineEdit, QPushButton, QComboBox, QTextEdit, \
     QSpinBox
 
 from appSettings import Settings
